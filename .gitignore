@@ -5,3 +5,7 @@
 /.vs/ServiceStation
 /bin/Debug
 /obj
+**/.vs
+**/bin
+**/obj
+**/.containers

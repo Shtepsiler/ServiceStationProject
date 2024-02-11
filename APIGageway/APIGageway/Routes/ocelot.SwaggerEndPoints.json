@@ -1,0 +1,39 @@
+{
+  "SwaggerEndPoints": [
+    {
+      "Key": "Gateway",
+      "TransformByOcelotConfig": false,
+      "Config": [
+        {
+          "Name": "API.GATEWAY",
+          "Version": "1.0",
+          "Url": "http://localhost:2000/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "client",
+      "TransformByOcelotConfig": true,
+      "Config": [
+        {
+          "Name": "ClientAPI",
+          "Version": "1.0",
+
+          "Url": "http://ClientAPI:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "manager",
+      "TransformByOcelotConfig": true,
+      "Config": [
+        {
+          "Name": "ManagerAPI",
+          "Version": "1.0",
+
+          "Url": "http://ManagerAPI:80/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ]
+}

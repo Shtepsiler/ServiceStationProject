@@ -1,0 +1,42 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/manager/swagger/{everything}",
+      "SwaggerKey": "manager",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "adminpartapi",
+          "Port": "80"
+        }
+      ]
+
+    },
+    {
+
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "SwaggerKey": "manager",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "adminpartapi",
+          "Port": "80"
+        }
+      ],
+      "UpstreamPathTemplate": "/manager/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    }
+  ]
+}

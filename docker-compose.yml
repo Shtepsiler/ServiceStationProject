@@ -1,0 +1,143 @@
+version: '3.4'
+networks:
+  ServiceStationNetwork:
+
+services:
+
+
+
+  rabbitmq:
+    image: rabbitmq:3.11.7-management
+    container_name: Rabbitmq
+    networks:
+      - ServiceStationNetwork
+    volumes:
+     - ./.containers/queue/data/:/var/lib/rabbitmq
+     - ./.containers/queue/log/:/var/lib/rabbitmq
+    environment:
+       RBBITMQ_DEFAULT_USER: guest
+       RBBITMQ_DEFAULT_PASS: guest
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  webapplicationdatabase:
+    container_name: ManagerAPIDatabase
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Qwerty123
+    networks:
+      - ServiceStationNetwork
+    ports:
+      - 1443:1433  
+      
+  taskmanagerformechanicdatabase:
+    container_name: MechanicAPIDatabase
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Qwerty123
+    networks:
+      - ServiceStationNetwork
+    ports:
+      - 1423:1433
+
+  servicestationapirediscash:
+    container_name: ClientAPIRedisCash
+    image: redis:7
+    networks:
+      - ServiceStationNetwork
+    ports:
+      - 6379:6379
+  
+  servicestationapidatabase:
+    container_name: ClientAPIDatabase
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Qwerty123
+    networks:
+      - ServiceStationNetwork
+    ports:
+      - 1433:1433
+
+
+  apigageway:
+    image: ${DOCKER_REGISTRY-}apigageway
+    build:
+      context: .
+      dockerfile: APIGageway/APIGageway/Dockerfile
+    container_name: API_GATEWAY
+    depends_on:
+      - mechanicpartweb
+      - clientpartapi
+      - adminpartapi
+    networks:
+         - ServiceStationNetwork
+    ports:
+      - 2000:80
+      - 2001:443   
+
+  adminpartapi:
+    image: ${DOCKER_REGISTRY-}adminpartapi
+    build:
+      context: .
+      dockerfile: AdminPart/AdminPartAPI/Dockerfile
+    container_name: adminpartapi
+    networks:
+         - ServiceStationNetwork
+    ports:
+      - 2040:80
+      - 2041:443
+    environment:
+      - DB_HOST=ManagerAPIDatabase
+      - DB_NAME=ServiceStation
+      - DB_SA_PASSWORD=Qwerty123
+      - RBBITMQ_USER= guest
+      - RBBITMQ_PASS= guest
+    depends_on:
+      - webapplicationdatabase
+
+  clientpartapi:
+    image: ${DOCKER_REGISTRY-}clientpartapi
+    build:
+      context: .
+      dockerfile: ClientPart/ClientPartAPI/Dockerfile
+    container_name: clientpartapi
+    networks:
+      - ServiceStationNetwork
+    ports:
+      - 2030:80
+      - 2031:443
+    environment:
+      - REDIS=ClientAPIRedisCash
+      - DB_HOST=ClientAPIDatabase
+      - DB_NAME=ServiceStation
+      - DB_SA_PASSWORD=Qwerty123
+      - RBBITMQ_USER= guest
+      - RBBITMQ_PASS= guest
+    depends_on:
+      - servicestationapidatabase
+      - servicestationapirediscash
+
+
+  mechanicpartweb:
+    image: ${DOCKER_REGISTRY-}mechanicpartweb
+    build:
+      context: .
+      dockerfile: MechanicPart/MechanicPartWEB/Dockerfile
+    container_name: mechanicpartweb
+    depends_on:
+      - taskmanagerformechanicdatabase
+    networks:
+         - ServiceStationNetwork
+    ports:
+      - 2020:80
+      - 2021:443
+    environment:
+      - DB_HOST=MechanicAPIDatabase
+      - DB_NAME=ServiceStation
+      - DB_SA_PASSWORD=Qwerty123
+      - RBBITMQ_USER= guest
+      - RBBITMQ_PASS= guest
